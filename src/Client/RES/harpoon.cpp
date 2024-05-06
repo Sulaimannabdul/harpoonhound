@@ -1,5 +1,5 @@
 #include "harpoon.hpp"
-#include "utils.hpp"
+#include "utils.cpp"
 
 _Use_decl_annotations_
 HRESULT Herpaderp::ExecuteProcess(
