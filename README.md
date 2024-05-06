@@ -16,17 +16,17 @@ SharpHound is designed targeting .Net 4.6.2. SharpHound must be run from the con
 ```
 src/
 │
-├──Client
+└── Client
    |── context.cs ✔              
    ├── enums.cs ✔
    ├── flags.cs ✔
    ├── links.cs ✔
    ├── vulnscan.cs ✔   
    |
-   |───RES
-      |── harpoon.cpp ✔
-      |── harpoon.hpp ✔
-      |── utils.cpp ✔    
+   └─── RES
+       |── harpoon.cpp ✔
+       |── harpoon.hpp ✔
+       └── utils.cpp ✔    
             
 ```
 
