@@ -7,6 +7,7 @@
     {
         None,
         Group,
+        Class
         Session,
         LoggedOn,
         Trusts,
