@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <RunConfiguration>
+    <TestAdaptersPaths>C:\build\dotnet-collector\framework\FrameworkSample.CsDataCollector\bin\Debug</TestAdaptersPaths>
+  </RunConfiguration>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="CsDataCollector">
+        <Configuration>
+          <TracerPath32>C:\build\bin\latest\cs_dotnet_tracer_32.dll</TracerPath32>
+          <TracerPath64>C:\build\bin\latest\cs_dotnet_tracer_64.dll</TracerPath64>
+          <OutputDir>C:\build\traces</OutputDir>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
