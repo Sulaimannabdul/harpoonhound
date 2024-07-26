@@ -1,5 +1,11 @@
 # BreedHound
 
+<a href="https://github.com/pxcs/BreedHound/"><p align="center">
+<img width="300" height="300" src="https://github.com/pxcs/bloodhound/src/img/logo-white-transparent.png">
+</p></a>
+
+My own custom *SharpHound* kit and extension, BreedHound.
+
 ## Compile Instructions
 
 ```
@@ -15,7 +21,7 @@ SharpHound is designed targeting .Net 4.6.2. SharpHound must be run from the con
 
 The latest build of BreedHound will always be found [here](https://github.com/pxcs/BreedHound/releases).
 
-To determine the BreedHound version compatible with a deployed **BloodHound** CE instance, login to BloodHound CE's web UI and click on ⚙️ (Settings) → Download Collectors. Then, click either the "Download BreedHound" button in the user interface or use the displayed BreedHound version to download the appropriate [release binary](https://github.com/pxcs/BreedHound/releases). Alternatively, compile a SharpHound binary from the corresponding release commit.
+To determine the BreedHound version compatible with a deployed **BloodHound** CE instance, login to BloodHound CE's web UI and click on ⚙️ (Settings) → Download Collectors. Then, click either the "Download BreedHound" button in the user interface or use the displayed BreedHound version to download the appropriate [release binary](https://github.com/pxcs/BreedHound/releases). Alternatively, compile a BreedHound binary from the corresponding release commit.
 
 
 ## Feature Update
@@ -52,5 +58,3 @@ src/
 ```py
 note: nothing now
 ```
-
-![bloodhound-logo](https://github.com/Sulaimannabdul/sharphound/assets/151133481/8ff5cadd-b696-4089-9830-69446a4c28bd)
