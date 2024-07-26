@@ -4,7 +4,7 @@
 <img width="300" height="300" src="logo.png">
 </p></a>
 
-My own custom *SharpHound* kit and extension, BreedHound.
+My own custom *SharpHound* kit ( BreedHound ) and extension, BreedHound.
 
 ## Compile Instructions
 
