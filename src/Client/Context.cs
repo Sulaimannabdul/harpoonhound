@@ -4,11 +4,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using SharpHoundCommonLib;
-using SharpHoundCommonLib.Enums;
+using BreedHoundCommonLib;
+using BreedHoundCommonLib.Enums;
 using Timer = System.Timers.Timer;
 
-namespace Sharphound.Client
+namespace Breedhound.Client
 {
     internal class FileExistsException : Exception
     {
