@@ -1,4 +1,4 @@
-# sharphound
+# BreedHound
 
 ## Compile Instructions
 
@@ -11,9 +11,18 @@ dotnet build
 
 SharpHound is designed targeting .Net 4.6.2. SharpHound must be run from the context of a domain user, either directly through a logon or through another method such as RUNAS.
 
-#### ***src*** future update
+## Get BreedHound
 
-```
+The latest build of BreedHound will always be found [here](https://github.com/pxcs/BreedHound/releases).
+
+To determine the BreedHound version compatible with a deployed **BloodHound** CE instance, login to BloodHound CE's web UI and click on ⚙️ (Settings) → Download Collectors. Then, click either the "Download BreedHound" button in the user interface or use the displayed BreedHound version to download the appropriate [release binary](https://github.com/pxcs/BreedHound/releases). Alternatively, compile a SharpHound binary from the corresponding release commit.
+
+
+## Feature Update
+
+<details><summary>More !</summary>
+
+```sh
 src/
 │
 └── Client
@@ -36,10 +45,11 @@ src/
             └─── pwn.cs
             
 ```
+</details>
 
-#### ***sharphound.csproj*** future update
+#### **sharphound.csproj** future update
 
-```
+```py
 note: nothing now
 ```
 
