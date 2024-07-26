@@ -1,7 +1,7 @@
 # BreedHound
 
 <a href="https://github.com/pxcs/BreedHound/"><p align="center">
-<img width="300" height="300" src="https://github.com/pxcs/bloodhound/src/img/logo-white-transparent.png">
+<img width="300" height="300" src="logo.png">
 </p></a>
 
 My own custom *SharpHound* kit and extension, BreedHound.
